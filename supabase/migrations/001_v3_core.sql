@@ -304,6 +304,7 @@ as $$
 $$;
 
 revoke all on function private.v3_is_conversation_participant(uuid) from public;
+grant usage on schema private to authenticated;
 grant execute on function private.v3_is_conversation_participant(uuid) to authenticated;
 
 create policy "participants read conversations"
