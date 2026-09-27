@@ -94,3 +94,29 @@ export async function sendHumanMessage(conversationId, userId, content) {
 
   return data
 }
+
+
+export async function requestAgentResponse(conversationId) {
+  const client = requireClient()
+  const { data: { session }, error: sessionError } = await client.auth.getSession()
+
+  if (sessionError) throw sessionError
+  if (!session?.access_token) throw new Error('You need to be signed in')
+
+  const response = await fetch('/api/agent/respond', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + session.access_token,
+    },
+    body: JSON.stringify({ conversationId }),
+  })
+
+  const payload = await response.json()
+
+  if (!response.ok) {
+    throw new Error(payload.error || 'Your agent could not respond')
+  }
+
+  return payload.message
+}
