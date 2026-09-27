@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - feat/supabase-auth-data
 
 jobs:
   build:
@@ -21,6 +20,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Check serverless agent endpoint
+        run: node --check api/agent/respond.js
 
       - name: Build
         run: npm run build
