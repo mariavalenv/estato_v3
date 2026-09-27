@@ -5,6 +5,7 @@ import './index.css'
 
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { AgentBootstrap } from './components/agents/AgentBootstrap'
 import { AppLayout } from './components/layout/AppLayout'
 import { Landing } from './pages/Landing'
 import { Dashboard } from './pages/Dashboard'
@@ -17,7 +18,9 @@ import { Account } from './pages/Account'
 function ProtectedApp({ children }) {
   return (
     <ProtectedRoute>
-      <AppLayout>{children}</AppLayout>
+      <AgentBootstrap>
+        <AppLayout>{children}</AppLayout>
+      </AgentBootstrap>
     </ProtectedRoute>
   )
 }
