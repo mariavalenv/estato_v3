@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { auth } from '../lib/supabase'
 import { getPreferences, savePreferences } from '../lib/legacyData'
+import { FlatmateProfileForm } from '../components/account/FlatmateProfileForm'
 
 function Field({ label, children }) {
   return (
@@ -172,6 +173,8 @@ export function Account() {
           </>
         )}
       </form>
+
+      <FlatmateProfileForm user={user} />
     </div>
   )
 }
