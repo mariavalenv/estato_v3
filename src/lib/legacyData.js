@@ -217,54 +217,6 @@ export async function getDiscoverData(userId) {
 }
 
 
-export async function getAgentPermissions(userId) {
-  const client = requireClient()
-  const { data, error } = await client
-    .from('agent_permissions')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (error) throw error
-
-  return data ?? {
-    user_id: userId,
-    can_contact_landlords: false,
-    auto_reject_below_score: 60,
-    can_initiate_introductions: false,
-    max_budget: null,
-    max_commute_minutes: 45,
-    voice_briefings_enabled: true,
-    briefing_frequency: 'important_only',
-  }
-}
-
-export async function saveAgentPermissions(userId, permissions) {
-  const client = requireClient()
-  const payload = {
-    user_id: userId,
-    can_contact_landlords: Boolean(permissions.can_contact_landlords),
-    auto_reject_below_score: Number(permissions.auto_reject_below_score ?? 60),
-    can_initiate_introductions: Boolean(permissions.can_initiate_introductions),
-    max_budget: permissions.max_budget === '' || permissions.max_budget == null
-      ? null
-      : Number(permissions.max_budget),
-    max_commute_minutes: Number(permissions.max_commute_minutes ?? 45),
-    voice_briefings_enabled: Boolean(permissions.voice_briefings_enabled),
-    briefing_frequency: permissions.briefing_frequency || 'important_only',
-    updated_at: new Date().toISOString(),
-  }
-
-  const { data, error } = await client
-    .from('agent_permissions')
-    .upsert(payload, { onConflict: 'user_id' })
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
-}
-
 export async function getApprovedMatches(userId) {
   const client = requireClient()
   const { data, error } = await client
