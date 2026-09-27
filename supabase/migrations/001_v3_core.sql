@@ -17,8 +17,13 @@ create table if not exists v3_agents (
   bio text,
   status text not null default 'active',
   public_metadata jsonb not null default '{}'::jsonb,
-  private_metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists v3_agent_private_state (
+  agent_id uuid references v3_agents(id) on delete cascade primary key,
+  state jsonb not null default '{}'::jsonb,
   updated_at timestamptz default now()
 );
 
@@ -117,6 +122,7 @@ create table if not exists v3_social_decisions (
 );
 
 alter table v3_agents enable row level security;
+alter table v3_agent_private_state enable row level security;
 alter table v3_agent_permissions enable row level security;
 alter table v3_households enable row level security;
 alter table v3_household_members enable row level security;
@@ -140,6 +146,25 @@ create policy "owners update agents"
 create policy "owners delete agents"
   on v3_agents for delete
   using (auth.uid() = owner_user_id);
+
+create policy "owners manage private agent state"
+  on v3_agent_private_state for all
+  using (
+    exists (
+      select 1
+      from v3_agents
+      where v3_agents.id = v3_agent_private_state.agent_id
+        and v3_agents.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from v3_agents
+      where v3_agents.id = v3_agent_private_state.agent_id
+        and v3_agents.owner_user_id = auth.uid()
+    )
+  );
 
 create policy "owners manage permissions"
   on v3_agent_permissions for all
@@ -221,7 +246,7 @@ grant execute on function v3_is_conversation_participant(uuid) to authenticated;
 
 create policy "participants read conversations"
   on v3_conversations for select
-  using (v3_is_conversation_participant(id));
+  using (created_by = auth.uid() or v3_is_conversation_participant(id));
 
 create policy "authenticated create conversations"
   on v3_conversations for insert
@@ -229,7 +254,7 @@ create policy "authenticated create conversations"
 
 create policy "participants update conversations"
   on v3_conversations for update
-  using (v3_is_conversation_participant(id));
+  using (created_by = auth.uid() or v3_is_conversation_participant(id));
 
 create policy "participants read participant list"
   on v3_conversation_participants for select
