@@ -175,10 +175,23 @@ export default async function handler(req, res) {
       .from('v3_messages')
       .select('sender_type,sender_user_id,sender_agent_id,content,created_at,agent:v3_agents(name,owner_user_id)')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(30)
 
     if (historyError) throw historyError
+
+    const recentOwnAgentMessage = (history || []).find(
+      (message) => message.sender_agent_id === agent.id
+    )
+
+    if (
+      recentOwnAgentMessage
+      && Date.now() - new Date(recentOwnAgentMessage.created_at).getTime() < 5000
+    ) {
+      return res.status(429).json({ error: 'Your agent just replied. Try again in a moment.' })
+    }
+
+    const orderedHistory = [...(history || [])].reverse()
 
     const context = {
       agent: {
@@ -197,7 +210,7 @@ export default async function handler(req, res) {
         agent_name: participant.agent?.name || null,
         agent_owner_user_id: participant.agent?.owner_user_id || null,
       })),
-      conversation_history: (history || []).map((message) => ({
+      conversation_history: orderedHistory.map((message) => ({
         author:
           message.sender_type === 'agent'
             ? message.agent?.name || 'Agent'
