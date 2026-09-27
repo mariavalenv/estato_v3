@@ -6,6 +6,7 @@ import {
   getConversationParticipants,
   getV3Messages,
   listMyV3Conversations,
+  requestAgentResponse,
   sendHumanMessage,
 } from '../lib/v3Conversations'
 
@@ -30,6 +31,7 @@ export function Chats() {
   const [loadingList, setLoadingList] = useState(true)
   const [loadingThread, setLoadingThread] = useState(false)
   const [sending, setSending] = useState(false)
+  const [agentThinking, setAgentThinking] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -123,6 +125,22 @@ export function Chats() {
       setError(err.message)
     } finally {
       setSending(false)
+    }
+  }
+
+  async function askAgent() {
+    if (!selectedId || agentThinking) return
+
+    setAgentThinking(true)
+    setError('')
+
+    try {
+      const message = await requestAgentResponse(selectedId)
+      if (message) setMessages((current) => [...current, message])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setAgentThinking(false)
     }
   }
 
@@ -300,7 +318,22 @@ export function Chats() {
                 )}
               </div>
 
-              <div className="p-4 flex items-center gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <button
+                  disabled={agentThinking}
+                  onClick={askAgent}
+                  className="shrink-0 px-3 py-2.5 rounded-btn text-meta font-semibold flex items-center justify-center gap-2"
+                  style={{
+                    background: 'rgba(99,134,241,0.12)',
+                    color: 'var(--accent)',
+                    border: '1px solid rgba(99,134,241,0.20)',
+                    opacity: agentThinking ? 0.6 : 1,
+                  }}
+                >
+                  <Bot size={14} />
+                  {agentThinking ? 'Agent thinking…' : 'Ask my agent'}
+                </button>
+                <div className="flex flex-1 min-w-0 items-center gap-3">
                 <input
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
@@ -312,7 +345,7 @@ export function Chats() {
                 <button
                   disabled={!input.trim() || sending}
                   onClick={send}
-                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
                   style={{
                     background: input.trim() ? 'var(--accent)' : 'var(--background)',
                     color: input.trim() ? '#fff' : 'var(--text-secondary)',
@@ -322,6 +355,7 @@ export function Chats() {
                 >
                   <ArrowUp size={16} />
                 </button>
+                </div>
               </div>
             </>
           )}
