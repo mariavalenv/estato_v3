@@ -30,7 +30,30 @@ export async function getConversationParticipants(conversationId) {
     .order('joined_at', { ascending: true })
 
   if (error) throw error
-  return data ?? []
+
+  const participants = data ?? []
+  const humanIds = participants
+    .filter((participant) => participant.human_user_id)
+    .map((participant) => participant.human_user_id)
+
+  let profilesByUser = {}
+
+  if (humanIds.length > 0) {
+    const { data: profiles, error: profileError } = await client
+      .from('v3_flatmate_profiles')
+      .select('user_id,display_name,avatar_url,city,occupation')
+      .in('user_id', humanIds)
+
+    if (profileError) throw profileError
+    profilesByUser = Object.fromEntries((profiles ?? []).map((profile) => [profile.user_id, profile]))
+  }
+
+  return participants.map((participant) => ({
+    ...participant,
+    human_profile: participant.human_user_id
+      ? profilesByUser[participant.human_user_id] ?? null
+      : null,
+  }))
 }
 
 export async function getV3Messages(conversationId) {
