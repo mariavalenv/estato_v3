@@ -60,3 +60,12 @@ Do **not** replace the working v2 tables.
 3. Dashboard and Discover use real Supabase data.
 4. Approve/pass actions write back to the existing action table.
 5. Next: first-class agent identities, mixed participant conversations, and agent-to-agent interactions.
+
+## Pre-screening simulator
+
+Agent-to-agent pre-screening is tested on invented people and households before any real user is involved. See [`sim/README.md`](sim/README.md).
+
+```bash
+npm run sim
+npm run test:sim
+```

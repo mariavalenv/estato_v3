@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sim": "node sim/run.js",
+    "test:sim": "node --test sim/tests/simulator.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

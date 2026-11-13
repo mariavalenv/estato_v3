@@ -24,5 +24,8 @@ jobs:
       - name: Check serverless agent endpoint
         run: node --check api/agent/respond.js
 
+      - name: Pre-screening simulator tests
+        run: npm run test:sim
+
       - name: Build
         run: npm run build
